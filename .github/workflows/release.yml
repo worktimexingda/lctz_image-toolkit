@@ -2,6 +2,11 @@ name: Build and Release
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag"
+        required: true
+        default: "v0.01.0"
   push:
     tags:
       - "v*"
@@ -100,7 +105,6 @@ jobs:
       - build-windows
       - build-macos
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
 
     steps:
       - name: Download artifacts
@@ -108,12 +112,22 @@ jobs:
         with:
           path: artifacts
 
+      - name: Set release tag
+        id: release_tag
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "tag=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          name: LCTZ Image Toolkit ${{ github.ref_name }}
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          name: LCTZ Image Toolkit ${{ steps.release_tag.outputs.tag }}
           body: |
-            LCTZ Image Toolkit ${{ github.ref_name }}
+            LCTZ Image Toolkit ${{ steps.release_tag.outputs.tag }}
 
             Downloads:
             - Windows x64: lctz_image-toolkit-windows-x64.zip
