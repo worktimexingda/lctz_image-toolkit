@@ -91,7 +91,7 @@ scripts/build_macos_universal2.sh
 推送 `v*` tag 后，会自动构建并发布：
 
 ```text
-lctz_image-toolkit-windows-x64.zip
+lctz_image-toolkit-windows-x64.exe
 lctz_image-toolkit-macos-x86_64.zip
 lctz_image-toolkit-macos-arm64.zip
 ```

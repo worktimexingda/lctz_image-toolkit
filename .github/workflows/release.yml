@@ -35,17 +35,17 @@ jobs:
 
       - name: Build app
         run: |
-          python -m PyInstaller --noconfirm --clean --windowed --name "lctz_image-toolkit" lctz_image_toolkit.py
+          python -m PyInstaller --noconfirm --clean --onefile --windowed --name "lctz_image-toolkit" lctz_image_toolkit.py
 
-      - name: Zip app
+      - name: Rename app
         run: |
-          Compress-Archive -Path "dist\lctz_image-toolkit" -DestinationPath "lctz_image-toolkit-windows-x64.zip" -Force
+          Move-Item -Path "dist\lctz_image-toolkit.exe" -Destination "lctz_image-toolkit-windows-x64.exe" -Force
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: lctz_image-toolkit-windows-x64
-          path: lctz_image-toolkit-windows-x64.zip
+          path: lctz_image-toolkit-windows-x64.exe
 
   build-macos:
     name: macOS ${{ matrix.arch }}
@@ -130,12 +130,12 @@ jobs:
             LCTZ Image Toolkit ${{ steps.release_tag.outputs.tag }}
 
             Downloads:
-            - Windows x64: lctz_image-toolkit-windows-x64.zip
+            - Windows x64: lctz_image-toolkit-windows-x64.exe
             - macOS Intel: lctz_image-toolkit-macos-x86_64.zip
             - macOS Apple Silicon: lctz_image-toolkit-macos-arm64.zip
 
             The macOS builds use ad-hoc signing.
           files: |
-            artifacts/lctz_image-toolkit-windows-x64/lctz_image-toolkit-windows-x64.zip
+            artifacts/lctz_image-toolkit-windows-x64/lctz_image-toolkit-windows-x64.exe
             artifacts/lctz_image-toolkit-macos-x86_64/lctz_image-toolkit-macos-x86_64.zip
             artifacts/lctz_image-toolkit-macos-arm64/lctz_image-toolkit-macos-arm64.zip
