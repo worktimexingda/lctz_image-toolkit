@@ -36,10 +36,15 @@ if command -v codesign >/dev/null 2>&1; then
   codesign --force --deep --sign - "dist/${APP_NAME}.app"
 fi
 
-ZIP_NAME="dist/${APP_NAME}-macos-${TARGET_ARCH}-$(uname -m).zip"
-ditto -c -k --keepParent "dist/${APP_NAME}.app" "$ZIP_NAME"
+DMG_ROOT="dist/dmg-root-${TARGET_ARCH}"
+DMG_NAME="dist/${APP_NAME}-macos-${TARGET_ARCH}-$(uname -m).dmg"
+rm -rf "$DMG_ROOT"
+mkdir -p "$DMG_ROOT"
+cp -R "dist/${APP_NAME}.app" "$DMG_ROOT/"
+ln -s /Applications "$DMG_ROOT/Applications"
+hdiutil create -volname "LCTZ Image Toolkit" -srcfolder "$DMG_ROOT" -ov -format UDZO "$DMG_NAME"
 
 echo
 echo "Build finished:"
 echo "  dist/${APP_NAME}.app"
-echo "  ${ZIP_NAME}"
+echo "  ${DMG_NAME}"

@@ -6,7 +6,7 @@ on:
       release_tag:
         description: "Release tag"
         required: true
-        default: "v0.01.0"
+        default: "v0.01.2"
   push:
     tags:
       - "v*"
@@ -35,7 +35,23 @@ jobs:
 
       - name: Build app
         run: |
-          python -m PyInstaller --noconfirm --clean --onefile --windowed --name "lctz_image-toolkit" lctz_image_toolkit.py
+          python -m PyInstaller --noconfirm --clean --onefile --windowed `
+            --exclude-module numpy `
+            --exclude-module numpy.libs `
+            --exclude-module PySide6.QtQml `
+            --exclude-module PySide6.QtQuick `
+            --exclude-module PySide6.QtNetwork `
+            --exclude-module PySide6.QtOpenGL `
+            --exclude-module PySide6.QtPdf `
+            --exclude-module PySide6.QtVirtualKeyboard `
+            --exclude-module PySide6.QtSvg `
+            --exclude-module PySide6.QtTest `
+            --exclude-module PySide6.QtWebEngineCore `
+            --exclude-module PySide6.QtWebEngineWidgets `
+            --exclude-module PIL.ImageQt `
+            --exclude-module PIL.ImageTk `
+            --exclude-module PIL.AvifImagePlugin `
+            --name "lctz_image-toolkit" lctz_image_toolkit.py
 
       - name: Rename app
         run: |
@@ -89,15 +105,23 @@ jobs:
         run: |
           codesign --force --deep --sign - "dist/lctz_image-toolkit.app"
 
-      - name: Zip app
+      - name: Create DMG
         run: |
-          ditto -c -k --keepParent "dist/lctz_image-toolkit.app" "lctz_image-toolkit-macos-${{ matrix.arch }}.zip"
+          mkdir -p dmg-root
+          cp -R "dist/lctz_image-toolkit.app" dmg-root/
+          ln -s /Applications dmg-root/Applications
+          hdiutil create \
+            -volname "LCTZ Image Toolkit" \
+            -srcfolder dmg-root \
+            -ov \
+            -format UDZO \
+            "lctz_image-toolkit-macos-${{ matrix.arch }}.dmg"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: lctz_image-toolkit-macos-${{ matrix.arch }}
-          path: lctz_image-toolkit-macos-${{ matrix.arch }}.zip
+          path: lctz_image-toolkit-macos-${{ matrix.arch }}.dmg
 
   release:
     name: Create GitHub Release
@@ -131,11 +155,11 @@ jobs:
 
             Downloads:
             - Windows x64: lctz_image-toolkit-windows-x64.exe
-            - macOS Intel: lctz_image-toolkit-macos-x86_64.zip
-            - macOS Apple Silicon: lctz_image-toolkit-macos-arm64.zip
+            - macOS Intel: lctz_image-toolkit-macos-x86_64.dmg
+            - macOS Apple Silicon: lctz_image-toolkit-macos-arm64.dmg
 
             The macOS builds use ad-hoc signing.
           files: |
             artifacts/lctz_image-toolkit-windows-x64/lctz_image-toolkit-windows-x64.exe
-            artifacts/lctz_image-toolkit-macos-x86_64/lctz_image-toolkit-macos-x86_64.zip
-            artifacts/lctz_image-toolkit-macos-arm64/lctz_image-toolkit-macos-arm64.zip
+            artifacts/lctz_image-toolkit-macos-x86_64/lctz_image-toolkit-macos-x86_64.dmg
+            artifacts/lctz_image-toolkit-macos-arm64/lctz_image-toolkit-macos-arm64.dmg

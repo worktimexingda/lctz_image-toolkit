@@ -92,8 +92,8 @@ scripts/build_macos_universal2.sh
 
 ```text
 lctz_image-toolkit-windows-x64.exe
-lctz_image-toolkit-macos-x86_64.zip
-lctz_image-toolkit-macos-arm64.zip
+lctz_image-toolkit-macos-x86_64.dmg
+lctz_image-toolkit-macos-arm64.dmg
 ```
 
 ## 项目结构
