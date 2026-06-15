@@ -78,15 +78,16 @@ scripts/build_macos_universal2.sh
 
 ## GitHub Actions
 
-仓库包含 macOS 构建 workflow：
+仓库包含自动构建和发布 workflow：
 
 ```text
-.github/workflows/build-macos.yml
+.github/workflows/release.yml
 ```
 
-推送 `v*` tag 或在 GitHub Actions 页面手动运行后，会生成：
+推送 `v*` tag 后，会自动构建并发布：
 
 ```text
+lctz_image-toolkit-windows-x64.zip
 lctz_image-toolkit-macos-x86_64.zip
 lctz_image-toolkit-macos-arm64.zip
 ```

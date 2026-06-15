@@ -1,0 +1,127 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Windows x64
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Build app
+        run: |
+          python -m PyInstaller --noconfirm --clean --windowed --name "lctz_image-toolkit" lctz_image_toolkit.py
+
+      - name: Zip app
+        run: |
+          Compress-Archive -Path "dist\lctz_image-toolkit" -DestinationPath "lctz_image-toolkit-windows-x64.zip" -Force
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lctz_image-toolkit-windows-x64
+          path: lctz_image-toolkit-windows-x64.zip
+
+  build-macos:
+    name: macOS ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-13
+            arch: x86_64
+            target_arch: x86_64
+          - os: macos-14
+            arch: arm64
+            target_arch: arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Build app
+        run: |
+          python -m PyInstaller \
+            --noconfirm \
+            --clean \
+            --windowed \
+            --target-arch "${{ matrix.target_arch }}" \
+            --name "lctz_image-toolkit" \
+            lctz_image_toolkit.py
+
+      - name: Ad-hoc sign app
+        run: |
+          codesign --force --deep --sign - "dist/lctz_image-toolkit.app"
+
+      - name: Zip app
+        run: |
+          ditto -c -k --keepParent "dist/lctz_image-toolkit.app" "lctz_image-toolkit-macos-${{ matrix.arch }}.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lctz_image-toolkit-macos-${{ matrix.arch }}
+          path: lctz_image-toolkit-macos-${{ matrix.arch }}.zip
+
+  release:
+    name: Create GitHub Release
+    needs:
+      - build-windows
+      - build-macos
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: LCTZ Image Toolkit ${{ github.ref_name }}
+          body: |
+            LCTZ Image Toolkit ${{ github.ref_name }}
+
+            Downloads:
+            - Windows x64: lctz_image-toolkit-windows-x64.zip
+            - macOS Intel: lctz_image-toolkit-macos-x86_64.zip
+            - macOS Apple Silicon: lctz_image-toolkit-macos-arm64.zip
+
+            The macOS builds use ad-hoc signing.
+          files: |
+            artifacts/lctz_image-toolkit-windows-x64/lctz_image-toolkit-windows-x64.zip
+            artifacts/lctz_image-toolkit-macos-x86_64/lctz_image-toolkit-macos-x86_64.zip
+            artifacts/lctz_image-toolkit-macos-arm64/lctz_image-toolkit-macos-arm64.zip
