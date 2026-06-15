@@ -1,0 +1,12 @@
+lctz_image-toolkit Attribution Notice
+
+This project is an independent PySide6 desktop implementation.
+The application display name is LCTZ Image Toolkit.
+
+The slide/click image comparison interaction was inspired by rgthree-comfy's
+"Image Comparer (rgthree)" node.
+
+rgthree-comfy is licensed under the MIT License.
+Copyright (c) 2023 Regis Gaughan, III (rgthree).
+
+No rgthree-comfy frontend source code is copied into this project.
